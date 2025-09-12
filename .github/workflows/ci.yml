@@ -168,7 +168,6 @@ jobs:
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
           type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
     
     - name: Build and push Docker image
       uses: docker/build-push-action@v6
@@ -179,8 +178,12 @@ jobs:
         load: ${{ github.event_name == 'pull_request' }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: |
+          type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          type=gha
+        cache-to: |
+          type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+          type=gha,mode=max
     
     - name: Test Docker image with in-memory cache
       if: github.event_name == 'pull_request'

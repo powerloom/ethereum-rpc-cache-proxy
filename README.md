@@ -136,10 +136,12 @@ docker pull ghcr.io/powerloom/ethereum-rpc-cache-proxy:develop
 ```
 
 ### Available Tags
-- `latest` - Latest stable release from master branch
+- `latest` - Latest stable release (only updated on version releases)
 - `master` - Latest commit from master branch
 - `develop` - Latest commit from develop branch
-- `v*.*.*` - Specific version tags (e.g., v0.1.0)
+- `v*.*.*` - Specific version tags (e.g., v0.1.0, v1.0.0)
+- `v*.* ` - Major.minor version tags (e.g., v0.1, v1.0)
+- `v*` - Major version tags (e.g., v0, v1)
 - `master-<sha>` - Specific commit on master
 - `develop-<sha>` - Specific commit on develop
 

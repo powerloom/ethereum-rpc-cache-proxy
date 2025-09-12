@@ -629,10 +629,12 @@ Triggers on: GitHub releases, Manual dispatch
 **Registry:** `ghcr.io/powerloom/ethereum-rpc-cache-proxy`
 
 **Available Tags:**
-- `latest` - Latest stable from master
+- `latest` - Latest stable release (only on version releases)
 - `master` - Latest master branch commit
 - `develop` - Latest develop branch commit
-- `v*.*.*` - Semantic version tags
+- `v*.*.*` - Semantic version tags (e.g., v0.1.0)
+- `v*.*` - Major.minor tags (e.g., v0.1)
+- `v*` - Major version tags (e.g., v1)
 - `master-<sha>` - Specific master commits
 - `develop-<sha>` - Specific develop commits
 
