@@ -38,12 +38,12 @@ jobs:
               owner,
               repo,
               event: 'push',
-              head_sha: context.payload.release.target_commitish,
+              branch: tag,  // Look for runs on the tag itself
               per_page: 10
             });
             
             const ciRun = runs.workflow_runs.find(run => 
-              run.name === 'CI' && run.head_branch === tag
+              run.name === 'CI'
             );
             
             if (ciRun) {
