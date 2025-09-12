@@ -166,6 +166,8 @@ jobs:
           type=ref,event=branch
           type=ref,event=pr
           type=semver,pattern={{raw}}
+        flavor: |
+          latest=false
     
     - name: Build and push Docker image
       uses: docker/build-push-action@v6
