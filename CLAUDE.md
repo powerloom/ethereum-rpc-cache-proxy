@@ -632,11 +632,8 @@ Triggers on: GitHub releases, Manual dispatch
 - `latest` - Latest stable release (only on version releases)
 - `master` - Latest master branch commit
 - `develop` - Latest develop branch commit
-- `v*.*.*` - Semantic version tags (e.g., v0.1.0)
-- `v*.*` - Major.minor tags (e.g., v0.1)
-- `v*` - Major version tags (e.g., v1)
-- `master-<sha>` - Specific master commits
-- `develop-<sha>` - Specific develop commits
+- `v*.*.*` - Version tags with original tag name (e.g., v0.1.0)
+- `pr-*` - Pull request builds (e.g., pr-123)
 
 ### Using Docker Images
 
