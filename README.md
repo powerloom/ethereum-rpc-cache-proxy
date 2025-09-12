@@ -17,10 +17,16 @@ A high-performance Node.js caching service for ALL Ethereum JSON-RPC methods wit
 
 ### Option 1: Using Docker (Recommended)
 ```bash
-# Clone the repo
-git clone <repository-url> && cd ethereum-rpc-cache-proxy
+# Pull from GitHub Container Registry
+docker pull ghcr.io/powerloom/ethereum-rpc-cache-proxy:latest
 
-# Run with Docker (in-memory cache + LlamaRPC)
+# Run with in-memory cache + LlamaRPC
+docker run -d -p 3000:3000 \
+  -e UPSTREAM_RPC_URL=https://eth.llamarpc.com \
+  -e REDIS_URL=memory \
+  ghcr.io/powerloom/ethereum-rpc-cache-proxy:latest
+
+# Or use docker-compose
 docker compose -f docker-compose.memory.yml up
 
 # Test it
@@ -32,7 +38,8 @@ curl -X POST http://localhost:3000 \
 ### Option 2: Using Node.js
 ```bash
 # Clone and install
-git clone <repository-url> && cd ethereum-rpc-cache-proxy && npm install
+git clone https://github.com/powerloom/ethereum-rpc-cache-proxy.git
+cd ethereum-rpc-cache-proxy && npm install
 
 # Run with in-memory cache and free LlamaRPC (no config needed!)
 UPSTREAM_RPC_URL=https://eth.llamarpc.com REDIS_URL=memory npm run dev
@@ -113,11 +120,34 @@ All successful responses include a `cached` field indicating whether the data wa
 - Redis server (optional - will use in-memory cache if not available)
 - Ethereum RPC endpoint (Alchemy, Infura, etc.)
 
+## Docker Images
+
+Official Docker images are available on GitHub Container Registry:
+
+```bash
+# Latest stable version
+docker pull ghcr.io/powerloom/ethereum-rpc-cache-proxy:latest
+
+# Specific version
+docker pull ghcr.io/powerloom/ethereum-rpc-cache-proxy:v0.1.0
+
+# Development version
+docker pull ghcr.io/powerloom/ethereum-rpc-cache-proxy:develop
+```
+
+### Available Tags
+- `latest` - Latest stable release from master branch
+- `master` - Latest commit from master branch
+- `develop` - Latest commit from develop branch
+- `v*.*.*` - Specific version tags (e.g., v0.1.0)
+- `master-<sha>` - Specific commit on master
+- `develop-<sha>` - Specific commit on develop
+
 ## Installation
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/powerloom/ethereum-rpc-cache-proxy.git
 cd ethereum-rpc-cache-proxy
 
 # Install dependencies

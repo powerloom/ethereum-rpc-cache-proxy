@@ -1,10 +1,12 @@
 # CLAUDE.md - Ethereum RPC Cache Proxy
 
-## 🎆 PROJECT STATUS: COMPLETE & TESTED 🎆
+## 🎆 PROJECT STATUS: COMPLETE & PRODUCTION-READY 🎆
 
 ✅ **Cache stampede problem: SOLVED**  
 ✅ **90% reduction in upstream calls: ACHIEVED**  
 ✅ **All tests: PASSING (100%)**  
+✅ **CI/CD Pipeline: FULLY AUTOMATED**  
+✅ **Docker images: PUBLISHED TO GHCR**  
 ✅ **Production ready: YES**  
 ✅ **In-memory cache support: IMPLEMENTED**
 
@@ -17,10 +19,11 @@ This is a high-performance Ethereum RPC caching service built with Fastify and R
 - **ALL RPC Methods Supported**: Comprehensive support for 45+ Ethereum RPC methods
 - **Intelligent Caching**: Method-specific TTLs based on data characteristics
 - **Cache Transparency**: All responses include `cached` field (true/false)
-- **CACHE_CONTRACT_ADDRESS Removed**: All contracts cached equally - simpler configuration
+- **Docker Images on GHCR**: Published to `ghcr.io/powerloom/ethereum-rpc-cache-proxy`
+- **CI/CD Pipeline**: Automated testing, building, and publishing via GitHub Actions
 - **In-Memory Cache Support**: Can now run without Redis for development/testing
 - **Auto-detection**: Automatically falls back to in-memory cache if Redis unavailable
-- **Clean Test Output**: All 55 tests pass with zero console output
+- **Clean Test Output**: All tests pass with zero console output
 
 ## Architecture
 
@@ -596,6 +599,61 @@ DISTRIBUTED_LOCK_ENABLED=true
 ```env
 STALE_WHILE_REVALIDATE=true
 CACHE_WARMING=true
+```
+
+## CI/CD Pipeline
+
+### Automated Workflows
+
+#### 1. CI Workflow (`.github/workflows/ci.yml`)
+Triggers on: Push to master/develop, Pull requests
+
+**Jobs:**
+- **Test**: Runs unit and integration tests with both Node.js 20.x and 22.x
+- **Test with Redis**: Tests Redis caching functionality
+- **Build**: Builds Docker image and pushes to GitHub Container Registry
+- **Security**: Runs npm audit and Trivy vulnerability scanning
+- **Performance**: Runs performance benchmarks
+- **Docker Compose Test**: Tests both Redis and in-memory configurations
+
+#### 2. Release Workflow (`.github/workflows/release.yml`)
+Triggers on: GitHub releases, Manual dispatch
+
+**Features:**
+- Multi-platform builds (linux/amd64, linux/arm64)
+- Semantic versioning tags
+- Automatic push to GHCR
+
+### Docker Images
+
+**Registry:** `ghcr.io/powerloom/ethereum-rpc-cache-proxy`
+
+**Available Tags:**
+- `latest` - Latest stable from master
+- `master` - Latest master branch commit
+- `develop` - Latest develop branch commit
+- `v*.*.*` - Semantic version tags
+- `master-<sha>` - Specific master commits
+- `develop-<sha>` - Specific develop commits
+
+### Using Docker Images
+
+```bash
+# Pull latest stable
+docker pull ghcr.io/powerloom/ethereum-rpc-cache-proxy:latest
+
+# Run with in-memory cache
+docker run -d -p 3000:3000 \
+  -e UPSTREAM_RPC_URL=https://eth.llamarpc.com \
+  -e REDIS_URL=memory \
+  ghcr.io/powerloom/ethereum-rpc-cache-proxy:latest
+
+# Run with Redis
+docker run -d -p 3000:3000 \
+  -e UPSTREAM_RPC_URL=https://eth.llamarpc.com \
+  -e REDIS_URL=redis://redis:6379 \
+  --link redis:redis \
+  ghcr.io/powerloom/ethereum-rpc-cache-proxy:latest
 ```
 
 ## Summary
