@@ -4,6 +4,10 @@ import { RPCHandler } from '../../src/handlers/rpcHandler.js';
 import { config } from '../../src/config/index.js';
 import * as redisModule from '../../src/cache/redis.js';
 
+// Parse URL for nock
+const upstreamUrl = new URL(config.ethereum.rpcUrl || 'http://localhost:8545');
+const nockUrl = `${upstreamUrl.protocol}//${upstreamUrl.host}`;
+
 // Mock Redis client with storage
 const mockStore = new Map();
 const mockRedisClient = {
@@ -79,7 +83,7 @@ describe('RPCHandler Integration Tests', () => {
     handler.resetMetrics();
     
     // Mock upstream RPC
-    upstreamMock = nock('http://localhost:8545')
+    upstreamMock = nock(nockUrl)
       .defaultReplyHeaders({
         'Content-Type': 'application/json'
       });
@@ -248,7 +252,7 @@ describe('RPCHandler Integration Tests', () => {
 
       // Now make upstream fail
       nock.cleanAll();
-      upstreamMock = nock('http://localhost:8545')
+      upstreamMock = nock(nockUrl)
         .post('/')
         .reply(500, { error: 'Internal Server Error' })
         .persist();
