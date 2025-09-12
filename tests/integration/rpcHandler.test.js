@@ -217,12 +217,15 @@ describe('RPCHandler Integration Tests', () => {
       }
 
       // Circuit should be open now
-      const metrics = handler.getMetrics();
+      let metrics = handler.getMetrics();
       expect(metrics.circuitBreaker.state).toBe('OPEN');
       
       // Next request should fail immediately
       const result = await handler.handleRequest(requests[0]);
       expect(result.error).toBeDefined();
+      
+      // Get updated metrics after the rejection
+      metrics = handler.getMetrics();
       expect(metrics.circuitBreakerRejections).toBeGreaterThan(0);
     });
 
