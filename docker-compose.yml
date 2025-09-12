@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # RPC Proxy - works with or without Redis based on REDIS_URL
+  rpc-proxy:
+    build: .
+    container_name: eth-rpc-proxy
+    ports:
+      - "${HOST_PORT:-3000}:${PORT:-3000}"
+    environment:
+      - UPSTREAM_RPC_URL=${UPSTREAM_RPC_URL:-https://eth.llamarpc.com}
+      # Use REDIS_URL env var, or default to connecting to redis service if WITH_REDIS=true
+      - REDIS_URL=${REDIS_URL:-${WITH_REDIS:+redis://redis:6379}}
+      - PORT=${PORT:-3000}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - PERMANENT_CACHE_HEIGHT=${PERMANENT_CACHE_HEIGHT:-15537393}
+      - LATEST_BLOCK_TTL=${LATEST_BLOCK_TTL:-2}
+      - ETH_CALL_TTL=${ETH_CALL_TTL:-300}
+      - RECENT_BLOCK_TTL=${RECENT_BLOCK_TTL:-60}
+    # No depends_on for Redis - it's optional
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:${PORT:-3000}/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    networks:
+      - rpc-network
+
+  # Redis cache service (optional - use profiles to enable)
+  redis:
+    image: redis:7-alpine
+    container_name: eth-rpc-redis
+    profiles: ["with-redis"]  # Only starts when profile is active
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - rpc-network
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  rpc-network:
+    driver: bridge

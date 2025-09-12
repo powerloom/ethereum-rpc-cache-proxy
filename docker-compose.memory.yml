@@ -1,0 +1,26 @@
+version: '3.8'
+
+# Simplified Docker Compose for in-memory cache (no Redis required)
+services:
+  rpc-proxy-memory:
+    build: .
+    container_name: eth-rpc-proxy-memory
+    ports:
+      - "${HOST_PORT:-3000}:${PORT:-3000}"
+    environment:
+      # Use LlamaRPC by default (free, no API key needed)
+      - UPSTREAM_RPC_URL=${UPSTREAM_RPC_URL:-https://eth.llamarpc.com}
+      # Use in-memory cache instead of Redis
+      - REDIS_URL=memory
+      - PORT=${PORT:-3000}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - PERMANENT_CACHE_HEIGHT=${PERMANENT_CACHE_HEIGHT:-15537393}
+      - LATEST_BLOCK_TTL=${LATEST_BLOCK_TTL:-2}
+      - ETH_CALL_TTL=${ETH_CALL_TTL:-300}
+      - RECENT_BLOCK_TTL=${RECENT_BLOCK_TTL:-60}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 3s
+      retries: 3

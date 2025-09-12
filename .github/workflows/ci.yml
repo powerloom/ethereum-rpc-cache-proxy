@@ -1,0 +1,289 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run all tests (with in-memory cache)
+      run: npm test
+      env:
+        REDIS_URL: memory
+        UPSTREAM_RPC_URL: https://eth.llamarpc.com
+        NODE_ENV: test
+    
+    - name: Run unit tests
+      run: npm run test:unit
+      env:
+        REDIS_URL: memory
+        NODE_ENV: test
+    
+    - name: Run integration tests
+      run: npm run test:integration
+      env:
+        REDIS_URL: memory
+        UPSTREAM_RPC_URL: https://eth.llamarpc.com
+        NODE_ENV: test
+    
+    - name: Run simple tests
+      run: npm run test:simple
+      env:
+        REDIS_URL: memory
+        UPSTREAM_RPC_URL: https://eth.llamarpc.com
+        NODE_ENV: test
+    
+    - name: Run verification tests
+      run: npm run test:verify
+      env:
+        REDIS_URL: memory
+        UPSTREAM_RPC_URL: https://eth.llamarpc.com
+        NODE_ENV: test
+    
+    - name: Generate coverage report
+      run: npm run test:coverage
+      env:
+        REDIS_URL: memory
+        NODE_ENV: test
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  test-with-redis:
+    runs-on: ubuntu-latest
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run tests with Redis
+      run: npm test
+      env:
+        REDIS_URL: redis://localhost:6379
+        UPSTREAM_RPC_URL: https://eth.llamarpc.com
+        NODE_ENV: test
+    
+    - name: Test Redis cache functionality
+      run: |
+        # Start the server in background
+        REDIS_URL=redis://localhost:6379 UPSTREAM_RPC_URL=https://eth.llamarpc.com npm start &
+        SERVER_PID=$!
+        
+        # Wait for server to start
+        sleep 5
+        
+        # Test cache hit/miss
+        curl -X POST http://localhost:3000 \
+          -H "Content-Type: application/json" \
+          -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}'
+        
+        # Check health endpoint
+        curl http://localhost:3000/health
+        
+        # Stop server
+        kill $SERVER_PID || true
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: false
+        tags: |
+          ethereum-rpc-cache-proxy:latest
+          ethereum-rpc-cache-proxy:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Test Docker image with in-memory cache
+      run: |
+        docker run -d --name test-container \
+          -p 3000:3000 \
+          -e UPSTREAM_RPC_URL=https://eth.llamarpc.com \
+          -e REDIS_URL=memory \
+          ethereum-rpc-cache-proxy:latest
+        
+        sleep 5
+        
+        # Test health endpoint
+        curl -f http://localhost:3000/health || exit 1
+        
+        # Test RPC endpoint
+        curl -X POST http://localhost:3000 \
+          -H "Content-Type: application/json" \
+          -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' || exit 1
+        
+        docker stop test-container
+        docker rm test-container
+
+  docker-compose-test:
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Test docker-compose with memory cache
+      run: |
+        # Test in-memory cache setup
+        docker-compose -f docker-compose.memory.yml up -d
+        sleep 10
+        
+        # Test the service
+        curl -f http://localhost:3000/health || exit 1
+        curl -X POST http://localhost:3000 \
+          -H "Content-Type: application/json" \
+          -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' || exit 1
+        
+        docker-compose -f docker-compose.memory.yml down
+    
+    - name: Test docker-compose with Redis
+      run: |
+        # Create .env file
+        echo "UPSTREAM_RPC_URL=https://eth.llamarpc.com" > .env
+        
+        # Test with Redis
+        docker-compose up -d
+        sleep 10
+        
+        # Test the service
+        curl -f http://localhost:3000/health || exit 1
+        
+        docker-compose down
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run npm audit
+      run: |
+        npm audit --audit-level=high || true
+    
+    - name: Run Trivy vulnerability scanner on filesystem
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'table'
+        exit-code: '0'
+        severity: 'CRITICAL,HIGH'
+    
+    - name: Run Trivy on Docker image
+      run: |
+        docker build -t test-image .
+        docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+          aquasec/trivy image test-image --severity HIGH,CRITICAL --exit-code 0
+
+  performance:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Start server with in-memory cache
+      run: |
+        REDIS_URL=memory UPSTREAM_RPC_URL=https://eth.llamarpc.com npm start &
+        SERVER_PID=$!
+        sleep 5
+    
+    - name: Run performance tests
+      run: |
+        # Install autocannon for load testing
+        npm install -g autocannon
+        
+        # Test concurrent requests (should demonstrate coalescing)
+        autocannon -c 100 -d 10 -m POST \
+          -H "Content-Type: application/json" \
+          -b '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+          http://localhost:3000
+        
+        # Check metrics
+        curl http://localhost:3000/health | jq .metrics
+    
+    - name: Verify cache efficiency
+      run: |
+        # Get metrics and verify efficiency
+        METRICS=$(curl -s http://localhost:3000/health | jq .metrics)
+        echo "Metrics: $METRICS"
+        
+        # Check if coalescing is working
+        COALESCED=$(echo $METRICS | jq .coalescedRequests)
+        if [ "$COALESCED" -gt 0 ]; then
+          echo "✅ Request coalescing is working: $COALESCED requests coalesced"
+        else
+          echo "⚠️ No requests were coalesced during the test"
+        fi

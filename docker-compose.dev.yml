@@ -1,0 +1,18 @@
+version: '3.8'
+
+# Development override configuration
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  rpc-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./src:/app/src:ro
+      - ./package.json:/app/package.json:ro
+      - ./.env:/app/.env:ro
+    environment:
+      - NODE_ENV=development
+      - LOG_LEVEL=debug
+    command: ["node", "--watch", "src/index.js"]
