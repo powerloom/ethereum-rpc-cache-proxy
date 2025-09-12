@@ -15,8 +15,8 @@ help:
 	@echo "Docker:"
 	@echo "  make docker-build - Build Docker image"
 	@echo "  make docker-up    - Start services with docker-compose"
-	@echo "  make docker-down  - Stop docker-compose services"
-	@echo "  make docker-logs  - View docker-compose logs"
+	@echo "  make docker-down  - Stop docker compose services"
+	@echo "  make docker-logs  - View docker compose logs"
 	@echo "  make docker-dev   - Start development with Docker"
 	@echo ""
 	@echo "Utilities:"
@@ -42,20 +42,20 @@ docker-build:
 
 # Start Docker services
 docker-up:
-	docker-compose up -d
+	docker compose up -d
 	@echo "Services started. View logs with: make docker-logs"
 
 # Stop Docker services
 docker-down:
-	docker-compose down
+	docker compose down
 
 # View Docker logs
 docker-logs:
-	docker-compose logs -f
+	docker compose logs -f
 
 # Development with Docker
 docker-dev:
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 
 # Clean dependencies and cache
 clean:

@@ -21,7 +21,7 @@ A high-performance Node.js caching service for ALL Ethereum JSON-RPC methods wit
 git clone <repository-url> && cd ethereum-rpc-cache-proxy
 
 # Run with Docker (in-memory cache + LlamaRPC)
-docker-compose -f docker-compose.memory.yml up
+docker compose -f docker-compose.memory.yml up
 
 # Test it
 curl -X POST http://localhost:3000 \
@@ -356,7 +356,7 @@ curl -X POST http://localhost:3000 \
 #### Option 1: In-Memory Cache (No Redis Required)
 ```bash
 # Build and run with in-memory cache + LlamaRPC
-docker-compose -f docker-compose.memory.yml up
+docker compose -f docker-compose.memory.yml up
 
 # Or run standalone
 docker build -t eth-rpc-proxy .
@@ -369,13 +369,13 @@ docker run -p 3000:3000 \
 #### Option 2: Production Setup with Redis
 ```bash
 # Start proxy with Redis (includes Redis container)
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Stop all services
-docker-compose down
+docker compose down
 ```
 
 ### Docker Compose Services
@@ -390,13 +390,13 @@ The project includes a complete Docker setup with:
 
 ```bash
 # Build and run in production mode
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f rpc-proxy
+docker compose logs -f rpc-proxy
 
 # Monitor Redis (optional)
-docker-compose --profile monitoring up -d
+docker compose --profile monitoring up -d
 # Open http://localhost:8001 for RedisInsight
 ```
 
@@ -407,7 +407,7 @@ docker-compose --profile monitoring up -d
 npm run docker:dev
 
 # Or manually
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 ```
 
 ### Docker Configuration
@@ -441,11 +441,11 @@ docker build -t eth-rpc-cache:latest .
 docker run -p 3000:3000 --env-file .env eth-rpc-cache:latest
 
 # Docker Compose commands
-docker-compose up -d                    # Start in background
-docker-compose down                     # Stop and remove
-docker-compose restart rpc-proxy        # Restart proxy only
-docker-compose exec rpc-proxy sh        # Shell into container
-docker-compose ps                       # View status
+docker compose up -d                    # Start in background
+docker compose down                     # Stop and remove
+docker compose restart rpc-proxy        # Restart proxy only
+docker compose exec rpc-proxy sh        # Shell into container
+docker compose ps                       # View status
 ```
 
 ## Testing

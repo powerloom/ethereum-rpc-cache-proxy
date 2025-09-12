@@ -1,7 +1,7 @@
 version: '3.8'
 
 # Development override configuration
-# Use with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+# Use with: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 
 services:
   rpc-proxy:

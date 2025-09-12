@@ -5,19 +5,19 @@
 ### Without Redis (In-Memory Cache)
 ```bash
 # Simple - just the proxy with in-memory cache
-docker-compose up rpc-proxy
+docker compose up rpc-proxy
 
 # Or explicitly set REDIS_URL to memory
-REDIS_URL=memory docker-compose up rpc-proxy
+REDIS_URL=memory docker compose up rpc-proxy
 ```
 
 ### With Redis (Production)
 ```bash
 # Start proxy + Redis using profiles
-docker-compose --profile with-redis up
+docker compose --profile with-redis up
 
 # Or use environment variable
-WITH_REDIS=true docker-compose --profile with-redis up
+WITH_REDIS=true docker compose --profile with-redis up
 ```
 
 ## 📋 Docker Compose Options
@@ -28,13 +28,13 @@ The main `docker-compose.yml` uses Docker profiles to make Redis optional:
 
 ```bash
 # Run WITHOUT Redis (in-memory cache)
-docker-compose up
+docker compose up
 
 # Run WITH Redis
-docker-compose --profile with-redis up
+docker compose --profile with-redis up
 
 # Run in background
-docker-compose --profile with-redis up -d
+docker compose --profile with-redis up -d
 ```
 
 ### Method 2: Environment Variables
@@ -43,23 +43,23 @@ Control cache backend via `REDIS_URL`:
 
 ```bash
 # Use in-memory cache
-REDIS_URL=memory docker-compose up
+REDIS_URL=memory docker compose up
 
 # Use Redis (when running with profile)
-REDIS_URL=redis://redis:6379 docker-compose --profile with-redis up
+REDIS_URL=redis://redis:6379 docker compose --profile with-redis up
 
 # Use external Redis
-REDIS_URL=redis://my-redis-server:6379 docker-compose up
+REDIS_URL=redis://my-redis-server:6379 docker compose up
 ```
 
 ### Method 3: Separate Compose Files
 
 ```bash
 # In-memory only (no Redis container)
-docker-compose -f docker-compose.memory.yml up
+docker compose -f docker-compose.memory.yml up
 
 # With Redis (includes Redis container)
-docker-compose -f docker-compose.yml --profile with-redis up
+docker compose -f docker-compose.yml --profile with-redis up
 ```
 
 ## 🎯 Configuration Examples
@@ -67,7 +67,7 @@ docker-compose -f docker-compose.yml --profile with-redis up
 ### Development Setup
 ```bash
 # Quick start with in-memory cache and LlamaRPC
-REDIS_URL=memory docker-compose up
+REDIS_URL=memory docker compose up
 ```
 
 ### Production Setup
@@ -75,19 +75,19 @@ REDIS_URL=memory docker-compose up
 # With Redis, custom RPC, and port
 UPSTREAM_RPC_URL=https://eth-mainnet.alchemyapi.io/v2/YOUR_KEY \
 HOST_PORT=8080 \
-docker-compose --profile with-redis up -d
+docker compose --profile with-redis up -d
 ```
 
 ### Custom Ports
 ```bash
 # Change external port only
-HOST_PORT=8080 docker-compose up
+HOST_PORT=8080 docker compose up
 
 # Change both internal and external ports
-HOST_PORT=8080 PORT=8080 docker-compose up
+HOST_PORT=8080 PORT=8080 docker compose up
 
 # Redis on custom port (when using Redis profile)
-REDIS_PORT=6380 docker-compose --profile with-redis up
+REDIS_PORT=6380 docker compose --profile with-redis up
 ```
 
 ### Using .env File
@@ -119,10 +119,10 @@ RECENT_BLOCK_TTL=60
 Then run:
 ```bash
 # Without Redis (if REDIS_URL=memory in .env)
-docker-compose up
+docker compose up
 
 # With Redis (if WITH_REDIS=true in .env)
-docker-compose --profile with-redis up
+docker compose --profile with-redis up
 ```
 
 ## 🔧 Advanced Usage
@@ -133,29 +133,29 @@ docker-compose --profile with-redis up
 docker build -t my-rpc-proxy:latest .
 
 # Use custom image in docker-compose
-IMAGE=my-rpc-proxy:latest docker-compose up
+IMAGE=my-rpc-proxy:latest docker compose up
 ```
 
 ### Connect to External Redis
 ```bash
 # Use external Redis instead of container
 REDIS_URL=redis://username:password@redis.example.com:6379/0 \
-docker-compose up
+docker compose up
 ```
 
 ### Multi-Instance Setup
 ```bash
 # Run multiple proxy instances with shared Redis
-docker-compose --profile with-redis up --scale rpc-proxy=3
+docker compose --profile with-redis up --scale rpc-proxy=3
 ```
 
 ### Debug Mode
 ```bash
 # Verbose logging
-LOG_LEVEL=debug docker-compose up
+LOG_LEVEL=debug docker compose up
 
 # Interactive mode for debugging
-docker-compose run --rm rpc-proxy sh
+docker compose run --rm rpc-proxy sh
 ```
 
 ## 📊 Monitoring
@@ -173,13 +173,13 @@ docker inspect eth-rpc-proxy --format='{{.State.Health.Status}}'
 ### View Logs
 ```bash
 # All logs
-docker-compose logs -f
+docker compose logs -f
 
 # Proxy logs only
-docker-compose logs -f rpc-proxy
+docker compose logs -f rpc-proxy
 
 # Redis logs (when using Redis)
-docker-compose logs -f redis
+docker compose logs -f redis
 ```
 
 ### Cache Statistics
@@ -197,28 +197,28 @@ curl http://localhost:3000/health | jq .cacheType
 ```bash
 # If Redis fails to connect, proxy auto-falls back to in-memory cache
 # Check logs for fallback message:
-docker-compose logs rpc-proxy | grep "memory cache"
+docker compose logs rpc-proxy | grep "memory cache"
 ```
 
 ### Port Conflicts
 ```bash
 # Use different ports
-HOST_PORT=3001 REDIS_PORT=6380 docker-compose --profile with-redis up
+HOST_PORT=3001 REDIS_PORT=6380 docker compose --profile with-redis up
 ```
 
 ### Memory Issues
 ```bash
 # Increase memory limits
-docker-compose run --rm -m 512m rpc-proxy
+docker compose run --rm -m 512m rpc-proxy
 ```
 
 ### Clean Restart
 ```bash
 # Stop and remove everything
-docker-compose down -v
+docker compose down -v
 
 # Remove all data including Redis volume
-docker-compose --profile with-redis down -v
+docker compose --profile with-redis down -v
 ```
 
 ## 🏗️ Docker Compose File Structure

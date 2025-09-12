@@ -25,7 +25,7 @@ echo "🚀 Starting Ethereum RPC Cache Proxy..."
 echo ""
 
 # Run with docker-compose
-docker-compose up -d
+docker compose up -d
 
 echo ""
 echo "✅ Services started successfully!"
@@ -36,11 +36,11 @@ echo "  - Health Check: http://localhost:3000/health"
 echo "  - Cache Stats: http://localhost:3000/cache/stats"
 echo ""
 echo "📝 Useful commands:"
-echo "  - View logs: docker-compose logs -f"
-echo "  - Stop services: docker-compose down"
-echo "  - Restart services: docker-compose restart"
+echo "  - View logs: docker compose logs -f"
+echo "  - Stop services: docker compose down"
+echo "  - Restart services: docker compose restart"
 echo "  - Clear cache: curl -X POST http://localhost:3000/cache/flush"
 echo ""
 echo "🔍 To monitor with RedisInsight (optional):"
-echo "  docker-compose --profile monitoring up -d"
+echo "  docker compose --profile monitoring up -d"
 echo "  Then open: http://localhost:8001"

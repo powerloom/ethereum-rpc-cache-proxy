@@ -177,10 +177,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Test docker-compose with memory cache
+    - name: Test docker compose with memory cache
       run: |
         # Test in-memory cache setup
-        docker-compose -f docker-compose.memory.yml up -d
+        docker compose -f docker-compose.memory.yml up -d
         sleep 10
         
         # Test the service
@@ -189,21 +189,21 @@ jobs:
           -H "Content-Type: application/json" \
           -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' || exit 1
         
-        docker-compose -f docker-compose.memory.yml down
+        docker compose -f docker-compose.memory.yml down
     
-    - name: Test docker-compose with Redis
+    - name: Test docker compose with Redis
       run: |
         # Create .env file
         echo "UPSTREAM_RPC_URL=https://eth.llamarpc.com" > .env
         
         # Test with Redis
-        docker-compose up -d
+        docker compose up -d
         sleep 10
         
         # Test the service
         curl -f http://localhost:3000/health || exit 1
         
-        docker-compose down
+        docker compose down
 
   security:
     runs-on: ubuntu-latest
