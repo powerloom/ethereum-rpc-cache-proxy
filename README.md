@@ -113,6 +113,7 @@ All successful responses include a `cached` field indicating whether the data wa
   "id": 1,
   "cached": false  // false = fetched from upstream, true = served from cache
 }
+```
 
 ## Prerequisites
 
@@ -681,7 +682,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-ISC
+MIT
 
 ## Author
 
