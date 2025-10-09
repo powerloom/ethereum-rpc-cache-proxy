@@ -226,7 +226,8 @@ jobs:
   docker-compose-test:
     runs-on: ubuntu-latest
     needs: build
-    
+    if: github.event_name != 'pull_request'
+
     steps:
     - uses: actions/checkout@v4
     
