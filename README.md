@@ -7,6 +7,7 @@ A high-performance Node.js caching service for ALL Ethereum JSON-RPC methods wit
 - **ALL Ethereum RPC methods supported** with intelligent caching strategies
 - **90% reduction in upstream RPC calls** through smart caching
 - **Solves cache stampede problem** with request coalescing
+- **Multi-URL fallback support**: Automatic failover to backup RPC providers
 - **Cache transparency**: Returns `cached` field indicating data source
 - **Dual cache backend**: Redis (production) or in-memory (development)
 - **Zero Redis dependency**: Run without Redis using in-memory cache
@@ -56,13 +57,14 @@ That's it! The proxy is now running with in-memory cache and connected to LlamaR
 
 ### Core Features
 - **Comprehensive Method Support**: Caches ALL Ethereum RPC methods intelligently
-- **Smart Caching by Category**: 
+- **Multi-URL Fallback**: Automatic failover to backup RPC providers (comma-separated URLs)
+- **Smart Caching by Category**:
   - Permanent caching for immutable data (transactions, receipts)
   - Dynamic TTLs for state data (balances, gas prices)
   - No caching for write operations (send transactions, signing)
 - **Automatic Method Detection**: New RPC methods are automatically handled
 - **Batch Request Support**: Handle multiple JSON-RPC requests in a single call
-- **Metrics & Monitoring**: Built-in health checks and cache statistics
+- **Metrics & Monitoring**: Built-in health checks and cache statistics with per-URL tracking
 - **High Performance**: Built on Fastify framework
 
 ### Advanced Features (All Optional)
@@ -170,7 +172,10 @@ PORT=3000
 HOST=0.0.0.0
 
 # Upstream Ethereum RPC
+# Single URL:
 UPSTREAM_RPC_URL=https://eth-mainnet.g.alchemy.com/v2/your-api-key
+# Multiple URLs with automatic fallback (comma-separated):
+# UPSTREAM_RPC_URL=https://eth.llamarpc.com,https://mainnet.infura.io/v3/key,https://eth-mainnet.g.alchemy.com/v2/key
 
 # Redis Configuration
 REDIS_URL=redis://localhost:6379
@@ -193,6 +198,64 @@ RECENT_BLOCK_TTL=60
 - **LATEST_BLOCK_TTL**: TTL for eth_blockNumber cache (seconds)
 - **ETH_CALL_TTL**: TTL for ALL eth_call results (seconds) - applies to all contracts
 - **RECENT_BLOCK_TTL**: TTL for recent blocks above permanent height (seconds)
+
+## Multi-URL Fallback Support (New Feature!)
+
+The proxy now supports **automatic fallback** to backup RPC URLs when the primary fails. Simply provide comma-separated URLs in `UPSTREAM_RPC_URL`.
+
+### How It Works
+1. **Auto-detection**: The proxy automatically detects multiple URLs when comma-separated
+2. **Intelligent retry**: On failure, automatically tries the next URL in the list
+3. **Health tracking**: Failed URLs are temporarily marked unhealthy (re-enabled after 1 minute)
+4. **Transparent operation**: Works seamlessly with existing single-URL configurations
+
+### Configuration Examples
+
+```env
+# Single URL (traditional mode - no changes needed)
+UPSTREAM_RPC_URL=https://eth.llamarpc.com
+
+# Multiple URLs with automatic fallback
+UPSTREAM_RPC_URL=https://eth.llamarpc.com,https://mainnet.infura.io/v3/key,https://eth-mainnet.g.alchemy.com/v2/key
+
+# Mix free and paid providers (free as primary, paid as fallback)
+UPSTREAM_RPC_URL=https://eth.llamarpc.com,https://eth-mainnet.g.alchemy.com/v2/your-key
+
+# Configure fallback behavior (optional)
+RPC_FALLBACK_ENABLED=true      # Enable/disable fallback (default: true)
+RPC_MAX_RETRIES_PER_URL=2      # Retries per URL before moving to next (default: 2)
+```
+
+### Benefits
+- **High availability**: Never go down due to a single RPC provider failure
+- **Cost optimization**: Use free providers as primary, paid as backup
+- **Load distribution**: Spread load across multiple providers
+- **Zero downtime migration**: Switch providers without service interruption
+
+### Health Monitoring
+
+The `/health` endpoint shows all configured RPC providers and their status:
+
+```json
+{
+  "rpcProviders": [
+    {
+      "url": "https://eth.llamarpc.com/",
+      "healthy": true,
+      "failureCount": 0,
+      "successCount": 150,
+      "lastError": null
+    },
+    {
+      "url": "https://mainnet.infura.io/[API_KEY]",
+      "healthy": false,
+      "failureCount": 3,
+      "lastError": "timeout",
+      "lastErrorTime": 1704156789000
+    }
+  ]
+}
+```
 
 ## Running the Server
 

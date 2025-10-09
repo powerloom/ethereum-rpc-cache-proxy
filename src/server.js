@@ -27,15 +27,19 @@ export async function buildServer() {
   fastify.get('/health', async (request, reply) => {
     const metrics = rpcHandler.getMetrics();
     const cacheType = rpcHandler.cacheManager.getCacheType();
-    
+    const rpcProviders = rpcHandler.ethereumService.getUrlHealthStatus();
+
     return {
       status: 'healthy',
       uptime: process.uptime(),
       cacheType,
       metrics,
+      rpcProviders,
       config: {
         permanentCacheHeight: config.cache.permanentCacheHeight,
-        ethCallTtl: config.cache.ethCallTtl
+        ethCallTtl: config.cache.ethCallTtl,
+        rpcUrlCount: rpcProviders.length,
+        fallbackEnabled: config.ethereum.fallbackEnabled
       }
     };
   });

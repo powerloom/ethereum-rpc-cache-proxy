@@ -10,11 +10,19 @@ async function start() {
       host: config.server.host
     });
 
+    // Format RPC URLs display
+    const rpcUrls = config.ethereum.rpcUrls || [config.ethereum.rpcUrl];
+    const rpcUrlsDisplay = rpcUrls.length > 1
+      ? `${rpcUrls.length} URLs configured (with fallback)
+    Primary: ${rpcUrls[0].substring(0, 30)}...
+    Fallback URLs: ${rpcUrls.length - 1}`
+      : `${config.ethereum.rpcUrl.substring(0, 30)}...`;
+
     console.log(`
 🚀 Ethereum RPC Cache Proxy Server Started
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📡 Server: http://${config.server.host}:${config.server.port}
-🔗 Upstream RPC: ${config.ethereum.rpcUrl.substring(0, 30)}...
+🔗 Upstream RPC: ${rpcUrlsDisplay}
 💾 Cache: ${config.redis.url || 'in-memory'}
 🔒 Permanent Cache Height: ${config.cache.permanentCacheHeight}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

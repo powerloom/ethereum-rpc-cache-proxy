@@ -7,13 +7,31 @@ if (process.env.NODE_ENV === 'test') {
   dotenv.config();
 }
 
+// Parse RPC URLs - support both single and comma-separated multiple URLs
+const parseRpcUrls = (urlString) => {
+  if (!urlString) return null;
+
+  // Check if multiple URLs are provided (comma-separated)
+  if (urlString.includes(',')) {
+    return urlString.split(',').map(url => url.trim()).filter(url => url);
+  }
+
+  // Single URL - return null to maintain backward compatibility
+  return null;
+};
+
 export const config = {
   server: {
     port: parseInt(process.env.PORT || '3000', 10),
     host: process.env.HOST || '0.0.0.0'
   },
   ethereum: {
-    rpcUrl: process.env.UPSTREAM_RPC_URL || 'https://eth-mainnet.g.alchemy.com/v2/your-api-key'
+    rpcUrl: process.env.UPSTREAM_RPC_URL || 'https://eth-mainnet.g.alchemy.com/v2/your-api-key',
+    // Auto-detect multiple URLs if comma-separated
+    rpcUrls: parseRpcUrls(process.env.UPSTREAM_RPC_URL),
+    // Fallback configuration
+    maxRetriesPerUrl: parseInt(process.env.RPC_MAX_RETRIES_PER_URL || '2', 10),
+    fallbackEnabled: process.env.RPC_FALLBACK_ENABLED !== 'false' // default true
   },
   redis: {
     url: process.env.REDIS_URL // No default - will use in-memory if not provided
