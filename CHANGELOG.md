@@ -5,7 +5,7 @@ All notable changes to the Ethereum RPC Cache Proxy will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2025-10-13
 
 ### Added
 - **Multi-URL Fallback Support** - Automatic failover to backup RPC providers
@@ -80,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Upgrade Guide
 
-### From 0.1.0 to Next Version
+### From 0.1.0 to 0.2.0
 
 No breaking changes! The multi-URL fallback feature is fully backward compatible.
 
@@ -146,7 +146,7 @@ The `/health` endpoint now includes detailed information about all RPC providers
 - [GitHub Repository](https://github.com/powerloom/ethereum-rpc-cache-proxy)
 - [Docker Images](https://ghcr.io/powerloom/ethereum-rpc-cache-proxy)
 - [Issue Tracker](https://github.com/powerloom/ethereum-rpc-cache-proxy/issues)
-- [Latest Release](https://github.com/powerloom/ethereum-rpc-cache-proxy/releases/tag/v0.1.0)
+- [Latest Release](https://github.com/powerloom/ethereum-rpc-cache-proxy/releases/tag/v0.2.0)
 
-[Unreleased]: https://github.com/powerloom/ethereum-rpc-cache-proxy/compare/v0.1.0...HEAD
+[0.2.0]: https://github.com/powerloom/ethereum-rpc-cache-proxy/releases/tag/v0.2.0
 [0.1.0]: https://github.com/powerloom/ethereum-rpc-cache-proxy/releases/tag/v0.1.0

@@ -14,9 +14,9 @@
 ## Project Overview
 This is a high-performance Ethereum RPC caching service built with Fastify and Redis/In-Memory cache. It selectively caches specific JSON-RPC methods to optimize blockchain data queries and **solves the cache stampede problem** with advanced features like request coalescing, distributed locking, circuit breakers, and multi-URL fallback support.
 
-**Version**: 0.1.1-dev - Complete solution with ALL Ethereum RPC methods supported, cache transparency, and multi-URL fallback
+**Version**: 0.2.0 - Complete solution with ALL Ethereum RPC methods supported, cache transparency, and multi-URL fallback
 
-## Latest Updates (v0.1.1-dev)
+## Latest Updates (v0.2.0)
 - **Multi-URL Fallback Support**: Automatic failover to backup RPC providers (NEW!)
   - Auto-detection of comma-separated URLs in `UPSTREAM_RPC_URL`
   - Intelligent retry logic with URL rotation
@@ -715,7 +715,7 @@ A production-ready Ethereum RPC caching proxy that completely solves the cache s
 Project: Ethereum RPC Cache Proxy
 Author: Powerloom
 License: ISC
-Version: 0.1.0 (Complete with ALL RPC methods supported)
+Version: 0.2.0 (Complete with ALL RPC methods supported)
 Status: 🎆 **PRODUCTION READY** 🎆
 
 ### Tested With

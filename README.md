@@ -132,7 +132,7 @@ Official Docker images are available on GitHub Container Registry:
 docker pull ghcr.io/powerloom/ethereum-rpc-cache-proxy:latest
 
 # Specific version
-docker pull ghcr.io/powerloom/ethereum-rpc-cache-proxy:v0.1.0
+docker pull ghcr.io/powerloom/ethereum-rpc-cache-proxy:v0.2.0
 
 # Development version
 docker pull ghcr.io/powerloom/ethereum-rpc-cache-proxy:develop
@@ -142,7 +142,7 @@ docker pull ghcr.io/powerloom/ethereum-rpc-cache-proxy:develop
 - `latest` - Latest stable release (only updated on version releases)
 - `master` - Latest commit from master branch
 - `develop` - Latest commit from develop branch
-- `v*.*.*` - Specific version tags (e.g., v0.1.0, v1.0.0)
+- `v*.*.*` - Specific version tags (e.g., v0.2.0, v0.1.0)
 - `pr-*` - Pull request builds (e.g., pr-123)
 
 ## Installation
@@ -753,7 +753,11 @@ Powerloom
 
 ## Version
 
-0.1.0 - Complete solution with in-memory cache support and cache stampede prevention
+**Current: 0.2.0** - Multi-URL fallback support with automatic failover to backup RPC providers
+
+**Previous: 0.1.0** - Complete solution with in-memory cache support and cache stampede prevention
+
+For detailed changes, see [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
