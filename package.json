@@ -1,6 +1,6 @@
 {
   "name": "ethereum-rpc-cache-proxy",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "High-performance Ethereum JSON-RPC cache proxy supporting ALL RPC methods with intelligent caching",
   "main": "src/index.js",
   "type": "module",
