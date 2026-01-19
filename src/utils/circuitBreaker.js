@@ -16,7 +16,10 @@ const State = {
 export class CircuitBreaker {
   constructor(name, options = {}) {
     this.name = name;
-    
+
+    // Check if circuit breaker is enabled
+    this.enabled = options.enabled ?? config.circuitBreaker?.enabled ?? true;
+
     // Configuration
     this.failureThreshold = options.failureThreshold || config.circuitBreaker?.failureThreshold || 5;
     this.successThreshold = options.successThreshold || config.circuitBreaker?.successThreshold || 2;
@@ -57,13 +60,18 @@ export class CircuitBreaker {
    * @returns {Promise} - Result of function or error
    */
   async execute(fn) {
+    // If circuit breaker is disabled, execute directly without any protection
+    if (!this.enabled) {
+      return await fn();
+    }
+
     this.metrics.totalRequests++;
-    
+
     // Check if circuit should be in HALF_OPEN state
     if (this.state === State.OPEN && Date.now() >= this.nextAttempt) {
       this.transition(State.HALF_OPEN);
     }
-    
+
     // Reject if circuit is OPEN
     if (this.state === State.OPEN) {
       this.metrics.totalRejections++;
@@ -71,7 +79,7 @@ export class CircuitBreaker {
       error.code = 'CIRCUIT_OPEN';
       throw error;
     }
-    
+
     try {
       // Add timeout protection
       const result = await this.executeWithTimeout(fn);
@@ -298,14 +306,15 @@ export class CircuitBreaker {
    */
   getMetrics() {
     const rollingStats = this.getRollingStats();
-    
+
     return {
+      enabled: this.enabled,
       ...this.metrics,
       state: this.state,
       currentFailures: this.failures,
       currentSuccesses: this.successes,
       rollingWindow: rollingStats,
-      nextAttemptIn: this.state === State.OPEN ? 
+      nextAttemptIn: this.state === State.OPEN ?
         Math.max(0, this.nextAttempt - Date.now()) : 0
     };
   }
