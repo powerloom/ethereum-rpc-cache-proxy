@@ -1,4 +1,6 @@
 import axios from 'axios';
+import http from 'http';
+import https from 'https';
 import { config } from '../config/index.js';
 
 export class EthereumService {
@@ -24,6 +26,26 @@ export class EthereumService {
     // Fallback configuration
     this.maxRetriesPerUrl = config.ethereum.maxRetriesPerUrl || 2;
     this.fallbackEnabled = config.ethereum.fallbackEnabled !== false;
+
+    // Create HTTP agents with keep-alive for connection reuse
+    // This prevents DNS lookups and TCP handshakes on every request
+    const keepAliveMsecs = parseInt(process.env.HTTP_KEEP_ALIVE_MSECS) || 30000;
+    const maxSockets = parseInt(process.env.HTTP_MAX_SOCKETS) || 50;
+    const maxFreeSockets = parseInt(process.env.HTTP_MAX_FREE_SOCKETS) || 10;
+
+    this.httpAgent = new http.Agent({
+      keepAlive: true,
+      keepAliveMsecs,
+      maxSockets,
+      maxFreeSockets
+    });
+
+    this.httpsAgent = new https.Agent({
+      keepAlive: true,
+      keepAliveMsecs,
+      maxSockets,
+      maxFreeSockets
+    });
   }
 
   // Make JSON-RPC call to upstream Ethereum node with automatic fallback
@@ -63,7 +85,9 @@ export class EthereumService {
             headers: {
               'Content-Type': 'application/json'
             },
-            timeout: 30000 // 30 second timeout
+            timeout: 30000, // 30 second timeout
+            httpAgent: this.httpAgent,
+            httpsAgent: this.httpsAgent
           });
 
           if (response.data.error) {
@@ -169,6 +193,12 @@ export class EthereumService {
       return true;
     }
 
+    // Retry on temporary DNS failures (EAI_AGAIN)
+    // With keep-alive connections, this should be rare but can happen
+    if (error.code === 'EAI_AGAIN') {
+      return true;
+    }
+
     // Don't retry on explicit RPC errors
     if (error.message && error.message.includes('RPC Error:')) {
       return false;
@@ -254,7 +284,9 @@ export class EthereumService {
           headers: {
             'Content-Type': 'application/json'
           },
-          timeout: 30000
+          timeout: 30000,
+          httpAgent: this.httpAgent,
+          httpsAgent: this.httpsAgent
         });
 
         // Success! Update metrics
@@ -297,5 +329,24 @@ export class EthereumService {
       console.error('All RPC URLs failed for batch call');
     }
     throw lastError;
+  }
+
+  // Cleanup method for graceful shutdown
+  destroy() {
+    // Destroy HTTP agents to close all keep-alive connections
+    if (this.httpAgent) {
+      this.httpAgent.destroy();
+    }
+    if (this.httpsAgent) {
+      this.httpsAgent.destroy();
+    }
+
+    // Clear any pending health check timers
+    this.urlMetrics.forEach(metrics => {
+      if (metrics.healthCheckTimer) {
+        clearTimeout(metrics.healthCheckTimer);
+        metrics.healthCheckTimer = null;
+      }
+    });
   }
 }
