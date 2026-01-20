@@ -233,19 +233,64 @@ describe('CircuitBreaker', () => {
       const shortBreaker = new CircuitBreaker('short', {
         windowSize: 100 // 100ms window
       });
-      
+
       const fn = jest.fn().mockResolvedValue('success');
-      
+
       await shortBreaker.execute(fn);
       expect(shortBreaker.getRollingStats().total).toBe(1);
-      
+
       await global.sleep(150); // Wait for window to expire
-      
+
       await shortBreaker.execute(fn);
-      
+
       // Old entry should be removed
       const stats = shortBreaker.getRollingStats();
       expect(stats.total).toBe(1); // Only recent entry
+    });
+  });
+
+  describe('enabled flag', () => {
+    it('should pass through directly when disabled via options', async () => {
+      const disabledBreaker = new CircuitBreaker('disabled-test', {
+        enabled: false,
+        failureThreshold: 1
+      });
+
+      const fn = jest.fn().mockRejectedValue(new Error('fail'));
+
+      // Should throw the original error, not circuit breaker error
+      await expect(disabledBreaker.execute(fn)).rejects.toThrow('fail');
+      await expect(disabledBreaker.execute(fn)).rejects.toThrow('fail');
+      await expect(disabledBreaker.execute(fn)).rejects.toThrow('fail');
+
+      // Circuit should still be CLOSED (never trips when disabled)
+      expect(disabledBreaker.getState()).toBe('CLOSED');
+      // Metrics should not be tracked when disabled
+      expect(disabledBreaker.getMetrics().totalRequests).toBe(0);
+    });
+
+    it('should not apply timeout when disabled', async () => {
+      const disabledBreaker = new CircuitBreaker('disabled-timeout', {
+        enabled: false,
+        timeout: 10 // Very short timeout
+      });
+
+      const slowFn = jest.fn().mockImplementation(async () => {
+        await global.sleep(50); // Longer than timeout
+        return 'success';
+      });
+
+      // Should succeed because timeout is not applied when disabled
+      const result = await disabledBreaker.execute(slowFn);
+      expect(result).toBe('success');
+    });
+
+    it('should include enabled status in metrics', () => {
+      const enabledBreaker = new CircuitBreaker('enabled-test', { enabled: true });
+      const disabledBreaker = new CircuitBreaker('disabled-test', { enabled: false });
+
+      expect(enabledBreaker.getMetrics().enabled).toBe(true);
+      expect(disabledBreaker.getMetrics().enabled).toBe(false);
     });
   });
 });

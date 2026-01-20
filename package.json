@@ -1,6 +1,6 @@
 {
   "name": "ethereum-rpc-cache-proxy",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "High-performance Ethereum JSON-RPC cache proxy supporting ALL RPC methods with intelligent caching",
   "main": "src/index.js",
   "type": "module",
@@ -49,6 +49,6 @@
     "nock": "^14.0.10",
     "pino-pretty": "^13.1.1",
     "redis-mock": "^0.56.3",
-    "supertest": "^7.1.4"
+    "supertest": "^7.2.2"
   }
 }
